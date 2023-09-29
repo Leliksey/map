@@ -1,0 +1,219 @@
+/* styles.css */
+.map-section {
+    background-color: #17222c;
+    padding: 20px;
+}
+.map-container {
+    position: relative;
+    width: 100%;
+    max-width: 100%; /* Ширина карты */
+    margin-top: 30px;
+}
+svg {
+    width: 100%;
+    height: auto;
+}
+.point__mobile,
+.point {
+    width: 30px;
+    height: 40px;
+    background-image: url("data:image/svg+xml,%3Csvg width='31' height='39' viewBox='0 0 31 39' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15.3374 0.139648C11.4032 0.144368 7.63152 1.73558 4.84962 4.56423C2.06773 7.39288 0.502826 11.228 0.498185 15.2283C0.493473 18.4974 1.54365 21.6777 3.48762 24.2815C3.48762 24.2815 3.89232 24.8233 3.95843 24.9015L15.3374 38.5471L26.7218 24.8946C26.7812 24.8219 27.1872 24.2815 27.1872 24.2815L27.1886 24.2774C29.1316 21.6747 30.1813 18.4959 30.1767 15.2283C30.172 11.228 28.6071 7.39288 25.8252 4.56423C23.0433 1.73558 19.2716 0.144368 15.3374 0.139648ZM15.3374 20.7151C14.2702 20.7151 13.2269 20.3933 12.3395 19.7904C11.4521 19.1875 10.7605 18.3306 10.3521 17.328C9.94367 16.3254 9.83681 15.2222 10.045 14.1579C10.2532 13.0936 10.7672 12.1159 11.5218 11.3486C12.2765 10.5812 13.238 10.0587 14.2847 9.84695C15.3314 9.63524 16.4164 9.7439 17.4024 10.1592C18.3884 10.5745 19.2312 11.2777 19.8241 12.18C20.417 13.0823 20.7335 14.1431 20.7335 15.2283C20.7317 16.6829 20.1626 18.0775 19.1511 19.106C18.1395 20.1346 16.768 20.7133 15.3374 20.7151Z' fill='black'/%3E%3Ccircle cx='15.3376' cy='14.9784' r='6.11028' fill='%23FFC60A'/%3E%3C/svg%3E%0A");
+    border-radius: 50%;
+    position: absolute !important;
+    cursor: pointer;
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+@media(max-width: 992px) {
+    .point__mobile,
+    .point {
+        width: 20px;
+        height: 30px;
+    }
+}
+@media(max-width: 576px) {
+    .point__mobile,
+    .point {
+        width: 15px;
+        height: 20px;
+    }
+}
+
+.pointInfoBlock {
+    border-radius: 30px;
+    padding: 20px;
+    max-width: 300px;
+    width: max-content;
+    height: auto;
+    background-color: #eee;
+    display: flex;
+    flex-direction: column;
+    row-gap: 5px;
+    display: none;
+    position: absolute;
+    /* right: 15px; */
+    z-index: 10;
+}
+@media(max-width: 992px) {
+    .pointInfoBlock {
+        max-width: 250px;
+    }
+}
+@media(max-width: 768px) {
+    .pointInfoBlock {
+        /* left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        /* position: fixed; */
+        /* margin: auto;
+        height: max-content; */
+    }
+}
+
+.delete-button {
+    /* display: none; */
+}
+.point__mobile:hover,
+.point:hover {
+    z-index: 100 !important;
+}
+.point__mobile:hover .pointInfoBlock,
+.point:hover .pointInfoBlock {
+    /* display: flex; */
+}
+.pointInfoBlock__title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-top: 15px;
+    text-align-last: center;
+}
+.pointInfoBlock__desc {
+    font-size: 15px;
+    font-weight: 400;
+    margin-top: 15px;
+}
+.pointInfoBlock__link {
+    background-color: #FFC60A;
+    color: #000;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 12px 69px;
+    border-radius: 100px;
+    margin-top: 16px;
+    text-decoration: none;
+    text-align: center;
+}
+@media(max-width: 992px) {
+    .pointInfoBlock__title {
+        font-size: 18px;
+        margin-top: 10px;
+    }
+    .pointInfoBlock__desc {
+        font-size: 14px;
+        margin-top: 10px;
+    }
+    .pointInfoBlock__link {
+        font-size: 16px;
+        margin-top: 10px;
+        padding: 10px 35px
+    }
+}
+.map__select-title {
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #fff;
+    display: none;
+}
+@media(max-width: 768px) {
+    .map__select-title {
+        display: block;
+    }
+    .pointInfoBlock__img {
+        max-height: 100px;
+    }
+}
+
+.map__select {
+    position: relative;
+    width: 100%;
+    display: none;
+}
+@media(max-width: 768px) {
+    .map__select{
+        display: block;
+    }
+}
+.map__select svg {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 20px;
+    margin: auto;
+    width: 12px;
+    height: 6px;
+}
+.map__select select {
+    background-color: #233743;
+    color: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    -webkit-appearance: none; 
+    -moz-appearance: none; 
+    appearance: none;
+    outline: none;
+    border: none;
+    width: 100%;
+}
+select#regions option {
+    padding: 10px;
+    line-height: 40px;
+}
+.hide {
+    display: none;
+}
+.region__group {
+    margin-top: 50px;
+    display: none;
+    position: relative;
+}
+.region__name {
+    color: #fff;
+    font-size: 32px;
+    font-weight: bold;
+    padding-right: 25px;
+}
+.region__desc {
+    font-size: 20px;
+    font-weight: 400;
+    color: #fff;
+    margin-top: 15px;
+}
+.map__phone {
+    background-color: #FFC60A;
+    color: #000;
+    padding: 14px 43px;
+    border-radius: 100px;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: bold;
+    margin: 68px auto 0;
+    display: none;
+    width: max-content;
+}
+@media(max-width: 768px) {
+    .map__phone {
+        display: block;
+    }
+}
+#region__close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+}
