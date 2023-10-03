@@ -1,8 +1,104 @@
 $(document).ready(function () {
     if($(window).width() < 769) {
+        const pointPositions = {};
         const $select = $('#regions');
         const createdPoints = [];
+        const $mapContainer = $('.map-container');
+        const $pointContainer = $('.point-container');
+        const points = [];
+        let mapWidth = $mapContainer.width();
+                    let mapHeight = $mapContainer.height();
+        function updatePointPosition(x, y, $point) {
+            // Обновляем информацию о позиции точки
+            const index = points.findIndex((point) => point.$element.is($point));
+            if (index !== -1) {
+                points[index].x = x;
+                points[index].y = y;
+            }
+
+            const xPercent = (x / mapWidth) * 100;
+            const yPercent = (y / mapHeight) * 100;
+            let current_index = $("#regions").attr("data-index");
+            // console.log(`Точка перемещена в (${xPercent}%, ${yPercent}%) относительно размеров карты.`);
+            // Здесь вы можете выполнить дополнительную логику или отправить данные на сервер.
+            localStorage.setItem(`point${current_index}`, `(${xPercent}%, ${yPercent}%)`);
+        }
+        function createPoint(id, x, y) {
+            let pointsArray = [];
+            const $point = $('<div class="point__mobile"></div>');
+            $point.attr('data-id', id);
+            $point.css({
+                left: x + 'px',
+                top: y + 'px',
+                'z-index': 1
+            });
+            pointsArray.push($point )
+            $point.draggable({
+                // containment: [0, 0, mapWidth - $point.width(), mapHeight ],
+                stop: function (event, ui) {
+                    updatePointPosition(ui.position.left, ui.position.top, $point);
+                }
+            });
+
+            const $pointInfoBlock = $('<div class="pointInfoBlock"><button class="delete-button">Удалить</button><img class="pointInfoBlock__img" src="example.jpg"><div class="pointInfoBlock__title">Заголовок</div><div class="pointInfoBlock__desc">Описание</div><a href="" class="pointInfoBlock__link">Узнать подробнее</a></div>');
+
+            $point.append($pointInfoBlock);
+
+            $point.on('click', function () {
+                // Переключение класса selected при клике на точку
+                $(this).toggleClass('selected');
+            });
+
+            $pointContainer.append($point);
+
+            // Добавляем информацию о точке в массив
+            points.push({
+                $element: $point,
+                x: x,
+                y: y
+            });
+        }
+         // Функция для удаления точки
+         function removePoint($point) {
+            // Удаляем информацию о точке из массива
+            const index = points.findIndex((point) => point.$element.is($point));
+            if (index !== -1) {
+                points.splice(index, 1);
+            }
+
+            $point.remove();
+        }
+        $(window).on('resize', function () {
+            const newMapWidth = $mapContainer.width();
+            const newMapHeight = $mapContainer.height();
+
+            // Обновляем позиции всех точек относительно новых размеров контейнера
+            points.forEach((point) => {
+                const oldPosition = point.$element.position();
+                const newX = (oldPosition.left / mapWidth) * newMapWidth;
+                const newY = (oldPosition.top / mapHeight) * newMapHeight;
+
+                point.$element.css({
+                    left: newX + 'px',
+                    top: newY + 'px'
+                });
+
+                // Обновляем информацию о позиции точки
+                point.x = newX;
+                point.y = newY;
+            });
+
+            mapWidth = newMapWidth;
+            mapHeight = newMapHeight;
+        });
         $select.on('change', function () {
+            let current_index = $("#regions").attr("data-index");
+    
+            // Сохраняем позиции точек для текущей области
+            pointPositions[current_index] = points.map(point => ({
+                x: point.x,
+                y: point.y
+            }));
             let selectedValue = $(this).val();
             let selectedOption = $(this).find('option:selected');
             
@@ -15,137 +111,27 @@ $(document).ready(function () {
             // $('.point__mobile').not('[data-id="' + selectedIndex + '"]').hide();
             $('.point__mobile').hide();
             $('.point__mobile[data-id="' + selectedIndex + '"]').show();
-
-           
+            if (pointPositions[selectedIndex]) {
+                // Если есть сохраненные позиции для выбранной области,
+                // восстанавливаем позиции точек
+                points.forEach((point, index) => {
+                    if (pointPositions[selectedIndex][index]) {
+                        const x = pointPositions[selectedIndex][index].x;
+                        const y = pointPositions[selectedIndex][index].y;
+                        point.$element.css({
+                            left: x + 'px',
+                            top: y + 'px'
+                        });
+                        point.x = x;
+                        point.y = y;
+                    }
+                });
+            }
             if(selectedIndex != 0) {
                 // function mobileCalculate() {
                     
-                    const $mapContainer = $('.map-container');
-                    const $pointContainer = $('.point-container');
+                   
                     let selectedPoint = null;
-                    
-                    let mapWidth = $mapContainer.width();
-                    let mapHeight = $mapContainer.height();
-
-                    const points = []; // Массив для хранения информации о точках
-
-                    // Функция для создания новой точки
-                    
-                    function createPoint(id, x, y) {
-                        let pointsArray = [];
-                        const $point = $('<div class="point__mobile"></div>');
-                        $point.attr('data-id', id);
-                        $point.css({
-                            left: x + 'px',
-                            top: y + 'px',
-                            'z-index': 1
-                        });
-                        pointsArray.push($point )
-                        console.log(pointsArray)
-                        $point.draggable({
-                            // containment: [0, 0, mapWidth - $point.width(), mapHeight ],
-                            stop: function (event, ui) {
-                                updatePointPosition(ui.position.left, ui.position.top, $point);
-                            }
-                        });
-
-                        const $pointInfoBlock = $('<div class="pointInfoBlock"><button class="delete-button">Удалить</button><img class="pointInfoBlock__img" src="example.jpg"><div class="pointInfoBlock__title">Заголовок</div><div class="pointInfoBlock__desc">Описание</div><a href="" class="pointInfoBlock__link">Узнать подробнее</a></div>');
-
-                        $point.append($pointInfoBlock);
-
-                        $point.on('click', function () {
-                            // Переключение класса selected при клике на точку
-                            $(this).toggleClass('selected');
-                        });
-
-                        $pointContainer.append($point);
-
-                        // Добавляем информацию о точке в массив
-                        points.push({
-                            $element: $point,
-                            x: x,
-                            y: y
-                        });
-                        
-                        
-                        
-                    }
-                    
-
-                    // Функция для удаления точки
-                    function removePoint($point) {
-                        // Удаляем информацию о точке из массива
-                        const index = points.findIndex((point) => point.$element.is($point));
-                        if (index !== -1) {
-                            points.splice(index, 1);
-                        }
-
-                        $point.remove();
-                    }
-
-                    // Функция для обновления позиции точки
-                    function updatePointPosition(x, y, $point) {
-                        // Обновляем информацию о позиции точки
-                        const index = points.findIndex((point) => point.$element.is($point));
-                        if (index !== -1) {
-                            points[index].x = x;
-                            points[index].y = y;
-                        }
-
-                        const xPercent = (x / mapWidth) * 100;
-                        const yPercent = (y / mapHeight) * 100;
-                        console.log(`Точка перемещена в (${xPercent}%, ${yPercent}%) относительно размеров карты.`);
-                        // Здесь вы можете выполнить дополнительную логику или отправить данные на сервер.
-                        localStorage.setItem(`point${selectedIndex}`, `(${xPercent}%, ${yPercent}%)`);
-                    }
-
-                    // Обработчик изменения размеров окна браузера
-                    $(window).on('resize', function () {
-                        const newMapWidth = $mapContainer.width();
-                        const newMapHeight = $mapContainer.height();
-
-                        // Обновляем позиции всех точек относительно новых размеров контейнера
-                        points.forEach((point) => {
-                            const oldPosition = point.$element.position();
-                            const newX = (oldPosition.left / mapWidth) * newMapWidth;
-                            const newY = (oldPosition.top / mapHeight) * newMapHeight;
-
-                            point.$element.css({
-                                left: newX + 'px',
-                                top: newY + 'px'
-                            });
-
-                            // Обновляем информацию о позиции точки
-                            point.x = newX;
-                            point.y = newY;
-                        });
-
-                        mapWidth = newMapWidth;
-                        mapHeight = newMapHeight;
-                    });
-
-                    // Обработчик клика по карте для создания новой точки
-                    
-                    $mapContainer.on('click', function (event) {
-                        if($(window).width() < 769) {
-                        if($(event.target).hasClass("point__mobile") || $(event.target).hasClass("pointInfoBlock") || $(event.target).hasClass("delete-button") || $(event.target).hasClass("pointInfoBlock__link") || $(event.target).hasClass("pointInfoBlock__title") || $(event.target).hasClass("pointInfoBlock__desc") || $(event.target).hasClass("pointInfoBlock__img")) {
-                            return;
-                        } else {
-                            let current_index = $("#regions").attr("data-index");
-                        const offsetX = event.pageX - $mapContainer.offset().left;
-                        const offsetY = event.pageY - $mapContainer.offset().top;
-                            let id = current_index;
-                                if (id) {
-                                    createPoint(id, offsetX, offsetY);
-                                    
-                                }
-                                
-                            }
-                            
-                        }
-                        
-                    });
-
                     // Обработчик клика на кнопку удаления
                     $(document).on("click", ".delete-button", function (e) {
                         e.stopPropagation();
@@ -156,6 +142,26 @@ $(document).ready(function () {
                 // }
                 // mobileCalculate();
                 
+                
+            }
+            
+            
+        });
+        $mapContainer.on('click', function (event) {
+            if($(window).width() < 769) {
+            if($(event.target).hasClass("point__mobile") || $(event.target).hasClass("pointInfoBlock") || $(event.target).hasClass("delete-button") || $(event.target).hasClass("pointInfoBlock__link") || $(event.target).hasClass("pointInfoBlock__title") || $(event.target).hasClass("pointInfoBlock__desc") || $(event.target).hasClass("pointInfoBlock__img")) {
+                return;
+            } else {
+                let current_index = $("#regions").attr("data-index");
+            const offsetX = event.pageX - $mapContainer.offset().left;
+            const offsetY = event.pageY - $mapContainer.offset().top;
+                let id = current_index;
+                    if (id) {
+                        createPoint(id, offsetX, offsetY);
+                        
+                    }
+                    
+                }
                 
             }
             
