@@ -5,8 +5,9 @@ $(document).ready(function () {
         $select.on('change', function () {
             let selectedValue = $(this).val();
             let selectedOption = $(this).find('option:selected');
-            let selectedIndex = $(this).find('option').index(selectedOption);
             
+            let selectedIndex = $(this).find('option').index(selectedOption);
+            $(this).attr("data-index", selectedIndex)
             $(".point-container svg").addClass("hide");
             $(".point-container svg").eq(selectedIndex + 1).removeClass("hide");
             $(".region__name").text(selectedValue);
@@ -17,7 +18,7 @@ $(document).ready(function () {
 
            
             if(selectedIndex != 0) {
-                function mobileCalculate() {
+                // function mobileCalculate() {
                     
                     const $mapContainer = $('.map-container');
                     const $pointContainer = $('.point-container');
@@ -130,14 +131,19 @@ $(document).ready(function () {
                         if($(event.target).hasClass("point__mobile") || $(event.target).hasClass("pointInfoBlock") || $(event.target).hasClass("delete-button") || $(event.target).hasClass("pointInfoBlock__link") || $(event.target).hasClass("pointInfoBlock__title") || $(event.target).hasClass("pointInfoBlock__desc") || $(event.target).hasClass("pointInfoBlock__img")) {
                             return;
                         } else {
+                            let current_index = $("#regions").attr("data-index");
                         const offsetX = event.pageX - $mapContainer.offset().left;
                         const offsetY = event.pageY - $mapContainer.offset().top;
-                            let id = selectedIndex;
+                            let id = current_index;
                                 if (id) {
                                     createPoint(id, offsetX, offsetY);
+                                    
                                 }
+                                
                             }
+                            
                         }
+                        
                     });
 
                     // Обработчик клика на кнопку удаления
@@ -147,11 +153,12 @@ $(document).ready(function () {
                     });
                     
                     
-                }
-                mobileCalculate();
+                // }
+                // mobileCalculate();
                 
                 
             }
+            
         });
         $('#region__close').on('click', function () {
             $select.val('');
