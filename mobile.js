@@ -1,42 +1,53 @@
 $(document).ready(function () {
-    if($(window).width() < 769) {
+    if ($(window).width() < 769) {
         const pointPositions = {};
         const $select = $('#regions');
-        const createdPoints = [];
         const $mapContainer = $('.map-container');
         const $pointContainer = $('.point-container');
         const points = [];
-        let mapWidth = $mapContainer.width();
-                    let mapHeight = $mapContainer.height();
-        function updatePointPosition(x, y, $point) {
+
+        function updatePointPosition(xPercent, yPercent, $point) {
             // Обновляем информацию о позиции точки
             const index = points.findIndex((point) => point.$element.is($point));
             if (index !== -1) {
-                points[index].x = x;
-                points[index].y = y;
+                points[index].xPercent = xPercent;
+                points[index].yPercent = yPercent;
             }
 
-            const xPercent = (x / mapWidth) * 100;
-            const yPercent = (y / mapHeight) * 100;
-            let current_index = $("#regions").attr("data-index");
-            // console.log(`Точка перемещена в (${xPercent}%, ${yPercent}%) относительно размеров карты.`);
+            const mapWidth = $mapContainer.width();
+            const mapHeight = $mapContainer.height();
+            const xPixels = (xPercent / 100) * mapWidth;
+            const yPixels = (yPercent / 100) * mapHeight;
+
+            console.log(`Точка перемещена в (${xPercent}%, ${yPercent}%) относительно размеров карты.`);
+
             // Здесь вы можете выполнить дополнительную логику или отправить данные на сервер.
             localStorage.setItem(`point${current_index}`, `(${xPercent}%, ${yPercent}%)`);
         }
-        function createPoint(id, x, y) {
-            let pointsArray = [];
+
+        function createPoint(id, xPercent, yPercent) {
             const $point = $('<div class="point__mobile"></div>');
             $point.attr('data-id', id);
+
+            // Применяем относительные координаты
             $point.css({
-                left: x + 'px',
-                top: y + 'px',
+                left: xPercent + '%',
+                top: yPercent + '%',
                 'z-index': 1
             });
-            pointsArray.push($point )
+
             $point.draggable({
-                // containment: [0, 0, mapWidth - $point.width(), mapHeight ],
                 stop: function (event, ui) {
-                    updatePointPosition(ui.position.left, ui.position.top, $point);
+                    const xPixels = ui.position.left;
+                    const yPixels = ui.position.top;
+
+                    // Преобразуем пиксели в относительные координаты
+                    const mapWidth = $mapContainer.width();
+                    const mapHeight = $mapContainer.height();
+                    const xPercent = (xPixels / mapWidth) * 100;
+                    const yPercent = (yPixels / mapHeight) * 100;
+
+                    updatePointPosition(xPercent, yPercent, $point);
                 }
             });
 
@@ -54,12 +65,12 @@ $(document).ready(function () {
             // Добавляем информацию о точке в массив
             points.push({
                 $element: $point,
-                x: x,
-                y: y
+                xPercent,
+                yPercent
             });
         }
-         // Функция для удаления точки
-         function removePoint($point) {
+
+        function removePoint($point) {
             // Удаляем информацию о точке из массива
             const index = points.findIndex((point) => point.$element.is($point));
             if (index !== -1) {
@@ -68,104 +79,90 @@ $(document).ready(function () {
 
             $point.remove();
         }
+        $(document).on("click", ".delete-button", function() {
+            $(this).parent().parent().remove();
+        })
         $(window).on('resize', function () {
-            const newMapWidth = $mapContainer.width();
-            const newMapHeight = $mapContainer.height();
+            const mapWidth = $mapContainer.width();
+            const mapHeight = $mapContainer.height();
 
             // Обновляем позиции всех точек относительно новых размеров контейнера
             points.forEach((point) => {
-                const oldPosition = point.$element.position();
-                const newX = (oldPosition.left / mapWidth) * newMapWidth;
-                const newY = (oldPosition.top / mapHeight) * newMapHeight;
+                const xPercent = point.xPercent;
+                const yPercent = point.yPercent;
+                const xPixels = (xPercent / 100) * mapWidth;
+                const yPixels = (yPercent / 100) * mapHeight;
 
                 point.$element.css({
-                    left: newX + 'px',
-                    top: newY + 'px'
+                    left: xPixels + 'px',
+                    top: yPixels + 'px'
                 });
-
-                // Обновляем информацию о позиции точки
-                point.x = newX;
-                point.y = newY;
             });
-
-            mapWidth = newMapWidth;
-            mapHeight = newMapHeight;
         });
+
         $select.on('change', function () {
             let current_index = $("#regions").attr("data-index");
-    
+
             // Сохраняем позиции точек для текущей области
             pointPositions[current_index] = points.map(point => ({
-                x: point.x,
-                y: point.y
+                xPercent: point.xPercent,
+                yPercent: point.yPercent
             }));
+
             let selectedValue = $(this).val();
             let selectedOption = $(this).find('option:selected');
-            
+
             let selectedIndex = $(this).find('option').index(selectedOption);
             $(this).attr("data-index", selectedIndex)
             $(".point-container svg").addClass("hide");
             $(".point-container svg").eq(selectedIndex + 1).removeClass("hide");
             $(".region__name").text(selectedValue);
             $(".region__group").show();
-            // $('.point__mobile').not('[data-id="' + selectedIndex + '"]').hide();
             $('.point__mobile').hide();
             $('.point__mobile[data-id="' + selectedIndex + '"]').show();
+
             if (pointPositions[selectedIndex]) {
                 // Если есть сохраненные позиции для выбранной области,
                 // восстанавливаем позиции точек
                 points.forEach((point, index) => {
                     if (pointPositions[selectedIndex][index]) {
-                        const x = pointPositions[selectedIndex][index].x;
-                        const y = pointPositions[selectedIndex][index].y;
+                        const xPercent = pointPositions[selectedIndex][index].xPercent;
+                        const yPercent = pointPositions[selectedIndex][index].yPercent;
+                        const mapWidth = $mapContainer.width();
+                        const mapHeight = $mapContainer.height();
+                        const xPixels = (xPercent / 100) * mapWidth;
+                        const yPixels = (yPercent / 100) * mapHeight;
                         point.$element.css({
-                            left: x + 'px',
-                            top: y + 'px'
+                            left: xPixels + 'px',
+                            top: yPixels + 'px'
                         });
-                        point.x = x;
-                        point.y = y;
+                        point.xPercent = xPercent;
+                        point.yPercent = yPercent;
                     }
                 });
             }
-            if(selectedIndex != 0) {
-                // function mobileCalculate() {
-                    
-                   
-                    let selectedPoint = null;
-                    // Обработчик клика на кнопку удаления
-                    $(document).on("click", ".delete-button", function (e) {
-                        e.stopPropagation();
-                        removePoint($(this).parent().parent());
-                    });
-                    
-                    
-                // }
-                // mobileCalculate();
-                
-                
-            }
-            
-            
         });
+
         $mapContainer.on('click', function (event) {
-            if($(window).width() < 769) {
-            if($(event.target).hasClass("point__mobile") || $(event.target).hasClass("pointInfoBlock") || $(event.target).hasClass("delete-button") || $(event.target).hasClass("pointInfoBlock__link") || $(event.target).hasClass("pointInfoBlock__title") || $(event.target).hasClass("pointInfoBlock__desc") || $(event.target).hasClass("pointInfoBlock__img")) {
-                return;
-            } else {
-                let current_index = $("#regions").attr("data-index");
-            const offsetX = event.pageX - $mapContainer.offset().left;
-            const offsetY = event.pageY - $mapContainer.offset().top;
-                let id = current_index;
+            if ($(window).width() < 769) {
+                if ($(event.target).hasClass("point__mobile") || $(event.target).hasClass("pointInfoBlock") || $(event.target).hasClass("delete-button") || $(event.target).hasClass("pointInfoBlock__link") || $(event.target).hasClass("pointInfoBlock__title") || $(event.target).hasClass("pointInfoBlock__desc") || $(event.target).hasClass("pointInfoBlock__img")) {
+                    return;
+                } else {
+                    let current_index = $("#regions").attr("data-index");
+                    const offsetX = event.pageX - $mapContainer.offset().left;
+                    const offsetY = event.pageY - $mapContainer.offset().top;
+                    const mapWidth = $mapContainer.width();
+                    const mapHeight = $mapContainer.height();
+                    const offsetXPercent = (offsetX / mapWidth) * 100;
+                    const offsetYPercent = (offsetY / mapHeight) * 100;
+                    let id = current_index;
                     if (id) {
-                        createPoint(id, offsetX, offsetY);
-                        
+                        createPoint(id, offsetXPercent, offsetYPercent);
                     }
-                    
                 }
-                
             }
-            
         });
+
         $('#region__close').on('click', function () {
             $select.val('');
             $(".point-container svg").addClass("hide");
@@ -174,6 +171,7 @@ $(document).ready(function () {
             $('.point').show();
             $('.point__mobile').hide();
         });
+    
                 // Вінницька область - 0
                 // Волинська область - 1
                 // Дніпропетровська область - 2
